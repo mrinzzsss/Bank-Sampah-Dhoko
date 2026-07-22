@@ -88,12 +88,12 @@ class RegisterOtpController extends Controller
             $user->assignRole('nasabah');
         }
 
-        // Auto login
-        Auth::login($user);
+        // Flash success message for login page
+        $request->session()->flash('status', 'Pendaftaran akun berhasil! Silakan masuk menggunakan Nomor HP dan Kata Sandi Anda.');
 
         return response()->json([
             'success' => true,
-            'redirect' => route('dashboard'),
+            'redirect' => route('login'),
         ]);
     }
 }

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -17,9 +18,27 @@ type Props = {
 };
 
 export default function Login({ status, canResetPassword }: Props) {
+    const [showStatus, setShowStatus] = useState(true);
+
+    useEffect(() => {
+        if (status) {
+            const timer = setTimeout(() => {
+                setShowStatus(false);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
+
     return (
         <>
             <Head title="Log in" />
+
+            {status && showStatus && (
+                <div className="mb-4 flex items-center justify-between rounded-lg bg-emerald-500/15 p-3.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 transition-all duration-500">
+                    <span>{status}</span>
+                    <button onClick={() => setShowStatus(false)} className="ml-2 font-bold text-sm opacity-70 hover:opacity-100">×</button>
+                </div>
+            )}
 
             <Form
                 {...store.form()}
@@ -99,12 +118,6 @@ export default function Login({ status, canResetPassword }: Props) {
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </>
     );
 }

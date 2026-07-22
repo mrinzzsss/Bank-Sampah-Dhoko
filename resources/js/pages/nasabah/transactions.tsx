@@ -20,13 +20,6 @@ interface TransactionsProps {
     filters: { search?: string };
 }
 
-const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(value);
-
 const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('id-ID', {
         day: 'numeric',
@@ -35,6 +28,29 @@ const formatDate = (dateStr: string) =>
         hour: '2-digit',
         minute: '2-digit',
     });
+
+const getPemilahanStatus = (sampahName?: string, categoryName?: string) => {
+    const nameLower = (sampahName || '').toLowerCase();
+    const catLower = (categoryName || '').toLowerCase();
+
+    if (
+        nameLower.includes('campur') ||
+        nameLower.includes('bodong') ||
+        catLower.includes('campur')
+    ) {
+        return {
+            label: 'Dicampur',
+            className:
+                'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700',
+        };
+    }
+
+    return {
+        label: 'Dipilah',
+        className:
+            'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700',
+    };
+};
 
 export default function Transactions({
     transactions,
@@ -66,7 +82,7 @@ export default function Transactions({
                         Riwayat Setoran Sampah
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Daftar semua setoran sampah Anda beserta berat (kg) dan perolehan nominal uang (Rupiah).
+                        Daftar semua setoran sampah Anda beserta berat (kg) dan status pemilahan sampah.
                     </p>
                 </div>
 
@@ -96,7 +112,7 @@ export default function Transactions({
                                     Berat (KG)
                                 </th>
                                 <th className="px-6 py-4 font-semibold text-muted-foreground">
-                                    Uang Diterima (Rp)
+                                    Keterangan
                                 </th>
                                 <th className="px-6 py-4 font-semibold text-muted-foreground">
                                     Dicatat Oleh
@@ -119,8 +135,20 @@ export default function Transactions({
                                         <td className="px-6 py-4 font-semibold text-foreground">
                                             {tx.total_weight} kg
                                         </td>
-                                        <td className="px-6 py-4 font-bold whitespace-nowrap text-emerald-500">
-                                            {formatCurrency(tx.total_income)}
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {(() => {
+                                                const status = getPemilahanStatus(
+                                                    tx.sampah?.name,
+                                                    tx.sampah?.category?.name,
+                                                );
+                                                return (
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
+                                                    >
+                                                        {status.label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 text-muted-foreground">
                                             {tx.admin?.name ?? 'Petugas'}

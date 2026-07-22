@@ -1,5 +1,6 @@
-import { Head } from '@inertiajs/react';
-import { Leaf, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { Leaf, TrendingUp, CheckCircle2 } from 'lucide-react';
 import nasabah from '@/routes/nasabah';
 import type { Sampah, User } from '@/types';
 
@@ -22,12 +23,28 @@ interface DashboardProps {
     recent_transactions: Transaction[];
 }
 
-const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(value);
+const getPemilahanStatus = (sampahName?: string, categoryName?: string) => {
+    const nameLower = (sampahName || '').toLowerCase();
+    const catLower = (categoryName || '').toLowerCase();
+
+    if (
+        nameLower.includes('campur') ||
+        nameLower.includes('bodong') ||
+        catLower.includes('campur')
+    ) {
+        return {
+            label: 'Dicampur',
+            className:
+                'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700',
+        };
+    }
+
+    return {
+        label: 'Dipilah',
+        className:
+            'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700',
+    };
+};
 
 const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('id-ID', {
@@ -40,19 +57,31 @@ export default function Dashboard({
     stats,
     recent_transactions,
 }: DashboardProps) {
+    const { flash } = usePage<{ flash?: { success?: string; message?: string } }>().props;
+    const [showFlash, setShowFlash] = useState(true);
+
+    useEffect(() => {
+        if (flash?.success || flash?.message) {
+            const timer = setTimeout(() => {
+                setShowFlash(false);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
+
     const statCards = [
         {
-            label: 'Total Pendapatan Rupiah',
-            value: formatCurrency(stats.total_income),
-            icon: TrendingUp,
+            label: 'Total Berat Setoran',
+            value: `${stats.total_weight} kg`,
+            icon: Leaf,
             color: 'text-emerald-500',
             bg: 'bg-emerald-500/10',
             border: 'border-emerald-500/20',
         },
         {
-            label: 'Total Berat Setoran',
-            value: `${stats.total_weight} kg`,
-            icon: Leaf,
+            label: 'Total Kali Setor',
+            value: `${recent_transactions.length} Setoran`,
+            icon: TrendingUp,
             color: 'text-blue-500',
             bg: 'bg-blue-500/10',
             border: 'border-blue-500/20',
@@ -63,13 +92,31 @@ export default function Dashboard({
         <>
             <Head title="Dashboard Nasabah" />
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+                {/* Flash Message 5 Detik */}
+                {showFlash && (flash?.success || flash?.message) && (
+                    <div className="flex items-center justify-between rounded-xl bg-emerald-500/15 p-4 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 transition-all duration-500">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span className="font-semibold text-sm">
+                                {flash.success || flash.message}
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => setShowFlash(false)}
+                            className="text-xs font-bold hover:underline opacity-80 hover:opacity-100 ml-4"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="border-b border-sidebar-border/70 pb-4 dark:border-sidebar-border">
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">
                         Dashboard Saya
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Pantau pendapatan rupiah dan riwayat setoran sampah Anda.
+                        Pantau statistik dan riwayat setoran sampah Anda.
                     </p>
                 </div>
 
@@ -118,7 +165,7 @@ export default function Dashboard({
                                         Berat (KG)
                                     </th>
                                     <th className="px-5 py-3 font-semibold text-muted-foreground">
-                                        Uang Diterima (Rp)
+                                        Keterangan
                                     </th>
                                 </tr>
                             </thead>
@@ -138,10 +185,22 @@ export default function Dashboard({
                                             <td className="px-5 py-3 font-semibold text-foreground">
                                                 {tx.total_weight} kg
                                             </td>
-                                            <td className="px-5 py-3 font-bold whitespace-nowrap text-emerald-500">
-                                                {formatCurrency(
-                                                    tx.total_income,
-                                                )}
+                                            <td className="px-5 py-3 whitespace-nowrap">
+                                                {(() => {
+                                                    const status =
+                                                        getPemilahanStatus(
+                                                            tx.sampah?.name,
+                                                            tx.sampah?.category
+                                                                ?.name,
+                                                        );
+                                                    return (
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
+                                                        >
+                                                            {status.label}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </td>
                                         </tr>
                                     ))
