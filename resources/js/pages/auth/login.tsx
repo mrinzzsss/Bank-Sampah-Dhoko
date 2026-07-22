@@ -30,18 +30,19 @@ export default function Login({ status, canResetPassword }: Props) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="phone_number">Nomor Handphone</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
+                                    id="phone_number"
+                                    type="tel"
+                                    name="phone_number"
                                     required
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
+                                    autoComplete="tel"
+                                    placeholder="Contoh: 081234567890 (min. 10 digit)"
+                                    minLength={10}
                                 />
-                                <InputError message={errors.email} />
+                                <InputError message={errors.phone_number || errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -109,6 +110,6 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Masuk ke Akun Anda',
+    description: 'Masukkan nomor HP (min. 10 digit) dan kata sandi Anda di bawah ini',
 };

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'otp' => [
+        'provider' => env('OTP_PROVIDER', 'fonnte'),
+        'fonnte_token' => env('FONNTE_TOKEN'),
+    ],
+
 ];

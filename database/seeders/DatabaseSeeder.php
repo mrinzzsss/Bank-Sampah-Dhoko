@@ -10,6 +10,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,6 +19,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $nasabahRole = Role::firstOrCreate(['name' => 'nasabah', 'guard_name' => 'web']);
+
         // 1. Super Admin Account
         $superAdmin = User::factory()->create([
             'name' => 'Super Admin KKN',
@@ -27,6 +32,7 @@ class DatabaseSeeder extends Seeder
             'phone_number' => '081100001111',
             'address' => 'Posko Utama KKN Aktivis Doko',
         ]);
+        $superAdmin->assignRole($superAdminRole);
 
         // 2. Admin (Pengepul / Petugas POS Bank Sampah) Accounts
         $admin1 = User::factory()->create([
@@ -37,6 +43,7 @@ class DatabaseSeeder extends Seeder
             'phone_number' => '081234567890',
             'address' => 'Pos Penimbangan Dusun Doko RT 01 / RW 02',
         ]);
+        $admin1->assignRole($adminRole);
 
         $admin2 = User::factory()->create([
             'name' => 'Petugas POS Sukomulyo',
@@ -46,13 +53,14 @@ class DatabaseSeeder extends Seeder
             'phone_number' => '081987654321',
             'address' => 'Pos Penimbangan Dusun Sukomulyo RT 03 / RW 01',
         ]);
+        $admin2->assignRole($adminRole);
 
         // 3. Nasabah (Warga Desa) Accounts with realistic Indonesian names & phone numbers
         $nasabahsData = [
             [
                 'name' => 'Nasabah User (Demo)',
                 'email' => 'test@example.com',
-                'phone' => '081234567890',
+                'phone' => '081200000000',
                 'address' => 'Dusun Doko RT 01 / RW 02, Desa Doko',
             ],
             [
@@ -101,7 +109,7 @@ class DatabaseSeeder extends Seeder
 
         $nasabahs = [];
         foreach ($nasabahsData as $nd) {
-            $nasabahs[] = User::factory()->create([
+            $user = User::factory()->create([
                 'name' => $nd['name'],
                 'email' => $nd['email'],
                 'role' => 'nasabah',
@@ -109,6 +117,8 @@ class DatabaseSeeder extends Seeder
                 'address' => $nd['address'],
                 'phone_number' => $nd['phone'],
             ]);
+            $user->assignRole($nasabahRole);
+            $nasabahs[] = $user;
         }
 
         // 4. Sampah Categories
