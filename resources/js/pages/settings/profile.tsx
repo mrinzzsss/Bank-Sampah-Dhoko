@@ -38,7 +38,8 @@ export default function Profile({
                 />
 
                 <Form
-                    {...ProfileController.update.form()}
+                    action="/settings/profile"
+                    method="patch"
                     options={{
                         preserveScroll: true,
                     }}
